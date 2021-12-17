@@ -1,1 +1,0 @@
-# pygame-lo-escencial
