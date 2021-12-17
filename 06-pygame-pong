@@ -1,0 +1,334 @@
+
+import math
+import random
+import datetime
+import time
+import pygame.gfxdraw
+import pygame
+
+# funciones de proyecto
+
+# variables de jugador
+x_jugador = 0
+y_jugador = 0
+w_jugador = 120
+h_jugador = 30
+
+moverIzquierda = False
+moverDerecha = False
+
+# variables pelota
+x_pelota = 0
+y_pelota = 0
+dx_pelota = 0
+dy_pelota = 0
+r_pelota = 15
+
+
+def setup():
+    setIcon("icono.png")
+    setTitle("Pong solitario")
+    setSize(600, 400, False)
+    global x_jugador, y_jugador, x_pelota, y_pelota, dx_pelota, dy_pelota
+    x_jugador = (width-w_jugador)/2
+    y_jugador = height-h_jugador-20
+    x_pelota = centerX
+    y_pelota = centerY
+    dx_pelota = randomize(-3, 3)
+    dy_pelota = randomize(-2, -5)
+
+
+def draw():
+    global x_jugador, x_pelota, y_pelota, dx_pelota, dy_pelota, ejecutando
+    background("black")
+    jugador = rect(x_jugador, y_jugador, w_jugador, h_jugador)
+    pelota = circle(x_pelota, y_pelota, r_pelota, "white")
+
+    if moverDerecha:
+        x_jugador += 5
+    if moverIzquierda:
+        x_jugador -= 5
+
+    x_jugador = constrain(x_jugador, 0, width-w_jugador)
+
+    x_pelota += dx_pelota
+    y_pelota += dy_pelota
+
+    if(outside(x_pelota, r_pelota, width-r_pelota)):
+        dx_pelota *= -1
+    if(y_pelota < r_pelota):
+        dy_pelota *= -1
+    if(y_pelota > height-r_pelota):
+        ejecutando = False
+
+    if(pelota.colliderect(jugador)):
+        dy_pelota *= -1
+        y_pelota = y_jugador-r_pelota
+
+
+def keyPressed(event):
+    global moverDerecha, moverIzquierda
+    if(event.key == pygame.K_RIGHT):
+        moverDerecha = True
+    if(event.key == pygame.K_LEFT):
+        moverIzquierda = True
+
+
+def keyReleased(event):
+    global moverDerecha, moverIzquierda
+    if(event.key == pygame.K_RIGHT):
+        moverDerecha = False
+    if(event.key == pygame.K_LEFT):
+        moverIzquierda = False
+
+# Variables de entorno y de control
+
+
+ejecutando = True
+frameRate = 60
+frameCount = 0
+width = 0
+height = 0
+centerX = 0
+centerY = 0
+mouseX = 0
+mouseY = 0
+pmouseX = 0
+pmouseY = 0
+movedX = 0
+movedY = 0
+
+pygame.init()
+
+canvas = None
+
+# funciones de personalización
+
+
+def setIcon(ruta):
+    try:
+        icon = pygame.image.load(ruta)
+        pygame.display.set_icon(icon)
+    except:
+        pass
+
+
+def setTitle(title):
+    pygame.display.set_caption(title)
+
+
+def setSize(w, h, resizable=True):
+    global canvas, width, height, centerX, centerY
+    width = w
+    height = h
+    centerX = width/2
+    centerY = height/2
+    if(resizable):
+        canvas = pygame.display.set_mode([width, height], pygame.RESIZABLE)
+    else:
+        canvas = pygame.display.set_mode([width, height])
+
+
+# control de eventos
+
+def mouseEvents(event):
+    if(event.type == pygame.MOUSEBUTTONDOWN):
+        try:
+            mousePressed(event)
+        except:
+            pass
+    if(event.type == pygame.MOUSEBUTTONUP):
+        try:
+            mouseReleased(event)
+        except:
+            pass
+    if(event.type == pygame.MOUSEMOTION):
+        try:
+            mouseDragged(event)
+        except:
+            pass
+
+
+def keyEvents(event):
+    if event.type == pygame.KEYDOWN:
+        try:
+            keyPressed(event)
+        except:
+            pass
+    if event.type == pygame.KEYUP:
+        try:
+            keyReleased(event)
+        except:
+            pass
+
+
+def windowEvent(event):
+    if event.type == pygame.VIDEORESIZE:
+        try:
+            windowResizing(event)
+        except:
+            pass
+    if event.type == pygame.QUIT:
+        try:
+            windowClosing()
+        except:
+            pass
+        global ejecutando
+        ejecutando = False
+
+
+def events():
+    for event in pygame.event.get():
+        windowEvent(event)
+        keyEvents(event)
+        mouseEvents(event)
+
+
+# funciones de actualización
+
+def updateVariables():
+    global width
+    global height
+    global mouseX
+    global mouseY
+    global pmouseX
+    global pmouseY
+    global movedX
+    global movedY
+    sz = pygame.display.get_window_size()
+    width = sz[0]
+    height = sz[1]
+    mouse = pygame.mouse.get_pos()
+    pmouseX = mouseX
+    pmouseY = mouseY
+    mouseX = mouse[0]
+    mouseY = mouse[1]
+    movedX = mouseX - pmouseX
+    movedY = mouseY - pmouseY
+
+
+def updateFrame():
+    pygame.display.flip()
+    time.sleep(1/frameRate)
+    global frameCount
+    frameCount += 1
+
+
+def update():
+    updateVariables()
+    events()
+    updateFrame()
+
+# funciones y variables matematicas
+
+
+PI = math.pi
+
+
+def cos(theta):
+    return math.cos(theta)
+
+
+def sin(theta):
+    return math.sin(theta)
+
+
+def constrain(v, vmin, vmax):
+    if(v < vmin):
+        return vmin
+    if(v > vmax):
+        return vmax
+    return v
+
+
+def outside(v, vmin, vmax):
+    return v < vmin or v > vmax
+
+
+def randomize(start=None, stop=None):
+    if(start!=None and stop!=None):
+        return (stop-start)*random.random()+start
+    if(start!=None):
+        return random.random()*start
+    return random.random()
+
+# funciones de tiempo
+
+
+def now():
+    return datetime.datetime.now()
+
+
+def second():
+    return now().second
+
+
+def minute():
+    return now().minute
+
+
+def hour():
+    return now().hour
+
+# funciones de dibujo
+
+
+def background(color):
+    rect(0, 0, width, height, color)
+
+
+def rect(x, y, w, h, color="white"):
+    if(len(color) == 4 and (type(color) == tuple or type(color) == list)):
+        pygame.gfxdraw.box(canvas, (x, y, w, h), color)
+    else:
+        pygame.draw.rect(canvas, color, (x, y, w, h))
+    return pygame.Rect(x, y, w, h)
+
+
+def drawRect(x, y, w, h, color="black", weight=1):
+    if(weight == 0):
+        return
+
+    if(weight == 1 and len(color) == 4 and (type(color) == tuple or type(color) == list)):
+        pygame.gfxdraw.rectangle(canvas, (x, y, w, h), color)
+    else:
+        pygame.draw.rect(canvas, color, (x, y, w, h), weight)
+
+
+def hline(y, color):
+    pygame.gfxdraw.hline(canvas, width, 0, y, color)
+
+
+def vline(x, color):
+    pygame.gfxdraw.vline(canvas, x, height, 0, color)
+
+
+def line(x1, y1, x2, y2, color="black", weight=1):
+    if(weight == 0):
+        return
+    if weight == 1 and len(color) == 4 and (type(color) == tuple or type(color) == list):
+        pygame.gfxdraw.line(canvas, x1, y1, x2, y2, color)
+    else:
+        if(weight == 1):
+            pygame.draw.aaline(canvas, color, (x1, y1), (x2, y2))
+        else:
+            pygame.draw.line(canvas, color, (x1, y1), (x2, y2), weight)
+
+
+def circle(x, y, r, color):
+    if(len(color) == 4 and (type(color) == tuple or type(color) == list)):
+        pygame.gfxdraw.filled_circle(canvas, x, y, r, color)
+    else:
+        pygame.draw.circle(canvas, color, (x, y), r)
+    return pygame.Rect(x-r, y-r, 2*r, 2*r)
+
+# looping y protocolo de ejecución
+
+
+setup()
+
+while ejecutando:
+    draw()
+    update()
+
+exit()
