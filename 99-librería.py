@@ -8,18 +8,9 @@ import math
 import os.path  # para verificar la existencia de un archivo
 import urllib.request  # para descargarlo de internet
 
-# funciones de proyecto
-
-def setup():
-    setTitle("Título de la ventana")
-    setSize(600, 400, False)
-
-def draw():
-    background("black")
-    circle(mouseX,mouseY,50,[randomize(255),randomize(255),randomize(255)])
-
-
 # IO
+
+
 def loadImage(filename, url=None):
     if(url != None):
         download(filename, url)
@@ -38,6 +29,7 @@ def download(filename, url):
         print("No se pudo descargar el archivo " + url)
 
 # Variables de entorno y de control
+
 
 ejecutando = True
 frameRate = 60
@@ -71,7 +63,7 @@ def setSize(w, h, resizable=True):
     height = h
     centerX = width/2
     centerY = height/2
-    
+
     if(resizable):
         canvas = pygame.display.set_mode([width, height], pygame.RESIZABLE)
     else:
@@ -182,11 +174,20 @@ class Vector():
         return self
 
     def rotate(self, theta=0):
-        self.set(
-            cos(theta)*self.x+sin(theta)*self.y,
-            -sin(theta)*self.x+cos(theta)*self.y
-        )
+        if(theta == PI/2):
+            self.set(self.y, -self.x)
+        elif(theta in [-PI/2, 3*PI/2]):
+            self.set(-self.y, self.x)
+        else:
+            self.set(
+                cos(theta)*self.x+sin(theta)*self.y,
+                -sin(theta)*self.x+cos(theta)*self.y
+            )
         return self
+
+
+def radians(a):
+    return math.radians(a)
 
 
 def cos(theta):
@@ -302,23 +303,3 @@ def font():
 def textCenter(txt, x, y, color="black"):
     sz = font().size(txt)
     drawImage(font().render(txt, True, color), x-sz[0]/2, y-sz[1]/2)
-
-# looping y protocolo de ejecución
-
-
-try:
-    setup()
-except Exception as e:
-    print("Error en el setup")
-    print(e)
-
-while ejecutando:
-    try:
-        draw()
-    except Exception as e:
-        print("Error en el draw")
-        print(e)
-        ejecutando = False
-    update()
-
-exit()
